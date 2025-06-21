@@ -53,3 +53,58 @@ These actions generate events, which are streamed through Kafka, processed by Fl
 | Dashboarding  | Kibana            | Visual insights                   |
 | Orchestration | Docker Compose    | Containerized local environment   |
 
+
+## Getting Started
+1. Clone the Repository
+```
+git clone https://github.com/samwanyua/Real-Time E-commerce Data Streaming Pipeline.git
+cd Real-Time E-commerce Data Streaming Pipeline
+```
+
+2. Start All Services
+```
+docker-compose up -d
+```
+This will spin up: Kafka + Zookeeper, Flink (JobManager & TaskManager), PostgreSQL, Elasticsearch,Kibana
+
+3. Generate Events
+Simulate e-commerce events with the Python Kafka producer:
+
+```
+python kafka-producer/producer.py
+```
+Each event looks like:
+
+```
+{
+  "event_type": "purchase",
+  "user_id": "user_123",
+  "product_id": "product_456",
+  "amount": 299.99,
+  "timestamp": 1720798021
+}
+```
+
+4. Deploy the Flink Job
+Run the Flink processing job that:
+
+Aggregates purchase amounts per product
+
+Sends results to Elasticsearch and PostgreSQL
+
+```
+docker exec -it flink-jobmanager ./bin/pyflink.sh flink-job/process_orders.py
+```
+5. Explore the Data
+```
+docker exec -it postgres psql -U ecommerce -d ecommerce
+```
+🔍 Elasticsearch
+Query processed results:
+
+```
+curl -X GET "localhost:9200/sales-agg/_search?pretty"
+```
+📊 Kibana
+Access Kibana at http://localhost:5601
+
