@@ -1,9 +1,9 @@
-version: '3.8'
+# version: '3.8'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     hostname: zookeeper
-    container_name: zookeeper
+    container_name: zookeeper_ecommerce
     ports:
       - "2181:2181"
     environment:
@@ -18,7 +18,7 @@ services:
   broker:
     image: confluentinc/cp-kafka:7.4.0
     hostname: broker
-    container_name: broker
+    container_name: broker_ecommerce
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
 
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: postgres_ecommerce
     ports:
       - "5432:5432"
     environment:
