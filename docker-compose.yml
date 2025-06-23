@@ -88,23 +88,35 @@ services:
     container_name: flink-jobmanager
     ports:
       - "8081:8081"  # Flink Web UI
+      - "6123:6123"  # RPC port
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager"
+      - "taskmanager.numberOfTaskSlots=2"
+    volumes:
+      - ./jars:/opt/flink/jars
+      - ./flink_job.py:/opt/flink/flink_job.py
+    entrypoint: /opt/flink/bin/jobmanager.sh start-foreground
+
+  flink-submit:
+    image: flink:1.17
+    depends_on:
+      - jobmanager
     volumes:
       - ./jars:/opt/flink/jars
       - ./flink_job.py:/opt/flink/flink_job.py
     entrypoint: >
       /bin/bash -c "
-        /opt/flink/bin/jobmanager.sh start;
-        echo 'Waiting for Flink JobManager to start...';
-        sleep 15;
-        flink run -py /opt/flink/flink_job.py
-          --pythonFiles /opt/flink/flink_job.py
-          --jarfile /opt/flink/jars/flink-connector-kafka-1.17.1.jar
-          --jarfile /opt/flink/jars/flink-connector-jdbc-1.17.1.jar
+        echo 'Waiting for Flink JobManager to be ready...';
+        while ! nc -z jobmanager 6123; do sleep 2; done;
+        echo 'Submitting Flink job...';
+        flink run -py /opt/flink/flink_job.py \
+          --pythonFiles /opt/flink/flink_job.py \
+          --jarfile /opt/flink/jars/flink-connector-kafka-1.17.1.jar \
+          --jarfile /opt/flink/jars/flink-connector-jdbc-1.17.1.jar \
           --jarfile /opt/flink/jars/postgresql-42.7.3.jar;
-        tail -f /dev/null
       "
+
 
 
 
@@ -118,6 +130,9 @@ services:
       - jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager"
+      - "taskmanager.numberOfTaskSlots=2"
+
     volumes:
       - ./jars:/opt/flink/jars
 
