@@ -1,3 +1,4 @@
 faker
 confluent_kafka
 simplejson
+apache-flink
