@@ -39,13 +39,12 @@ def main():
 
     # Create Kafka producer with bootstrap server address
     producer = SerializingProducer({
-        'bootstrap.servers': 'localhost:9092'
+        'bootstrap.servers': 'broker:29092'  
     })
 
-    # Start time to run the loop for 120 seconds
     current_time = datetime.now()
 
-    while (datetime.now() - current_time).total_seconds() < 120:
+    while (datetime.now() - current_time).total_seconds() < 240:
         try:
             # Generate a fake transaction
             transaction = generate_sales_transactions()
