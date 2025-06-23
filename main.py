@@ -3,6 +3,7 @@ from confluent_kafka import SerializingProducer
 import random
 from datetime import datetime
 import time
+import json
 
 fake = Faker()
 
@@ -24,10 +25,17 @@ def generate_sales_transactions():
 
     }
 
+def delivery_report(err, msg):
+    if err is not None:
+        print(f"Message delivery failed: {err}")
+    else:
+        print(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+
+
 def main():
     topic = 'financial_transactions'
     producer = SerializingProducer({
-        'bootstrap.servers': 'localhost:9002'
+        'bootstrap.servers': 'localhost:9092'
     })
 
     current_time = datetime.now()
@@ -37,7 +45,18 @@ def main():
             transaction['total_amount'] = transaction['product_price'] * transaction['product_quantity']
 
             print(transaction)
-            time.sleep(1)
+
+            producer.produce(topic,
+                            key= transaction['transaction_id'],
+                            value= json.dumps(transaction),
+                            on_delivery= delivery_report
+                            
+                            )
+            producer.poll(0)
+            time.sleep(5)
+        except BufferError:
+            print("Buffer full! Waiting...")
+            time.sleep(2)
 
         except Exception as e:
             print("Error: ", e)
