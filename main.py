@@ -44,8 +44,7 @@ def main():
 
     current_time = datetime.now()
 
-    # while (datetime.now() - current_time).total_seconds() < 240:
-    while True:
+    while (datetime.now() - current_time).total_seconds() < 240:
         try:
             # Generate a fake transaction
             transaction = generate_sales_transactions()
