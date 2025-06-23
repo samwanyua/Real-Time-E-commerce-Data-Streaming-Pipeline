@@ -22,7 +22,7 @@ def generate_sales_transactions():
         "product_brand": random.choice(['Apple', 'Samsung', 'mi', 'dell', 'sony']),
         "currency": random.choice(['USD', 'GBP']),
         "customer_id": user['username'],  # Fake customer ID (username)
-        "transcation_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',  # Current timestamp in ISO format
+        "transaction_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',  # Current timestamp in ISO format
         "payment_method": random.choice(['Credit card', 'Debit Card', 'Online transfer'])  # Random payment type
     }
 
