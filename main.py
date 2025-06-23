@@ -1,4 +1,4 @@
-from faker import Faker  # To generate fake data
+from faker import Faker 
 from confluent_kafka import SerializingProducer  # Kafka producer with serialization support
 import random 
 from datetime import datetime  

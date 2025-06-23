@@ -3,8 +3,8 @@ from pyflink.common.typeinfo import Types
 from pyflink.datastream.connectors.kafka import FlinkKafkaConsumer
 from pyflink.common.serialization import SimpleStringSchema
 from pyflink.datastream.connectors.jdbc import JdbcSink
-
 import json
+
 
 def map_transaction(record):
     data = json.loads(record)
@@ -19,14 +19,15 @@ def map_transaction(record):
         data['product_brand'],
         data['currency'],
         data['customer_id'],
-        data['transcation_date'],
+        data['transaction_date'],  
         data['payment_method']
     )
+
 
 env = StreamExecutionEnvironment.get_execution_environment()
 env.set_parallelism(1)
 
-# Set up Kafka consumer
+# Kafka configuration
 kafka_props = {
     'bootstrap.servers': 'broker:29092',
     'group.id': 'flink-consumer-group'
@@ -38,7 +39,6 @@ consumer = FlinkKafkaConsumer(
     properties=kafka_props
 )
 
-# Create a stream from Kafka
 stream = env.add_source(consumer).map(
     map_transaction,
     output_type=Types.TUPLE([
@@ -57,7 +57,7 @@ stream = env.add_source(consumer).map(
     ])
 )
 
-# Define JDBC sink to Postgres
+# JDBC Sink to PostgreSQL
 sink = JdbcSink.sink(
     sql="""
         INSERT INTO transactions (
@@ -73,13 +73,11 @@ sink = JdbcSink.sink(
         Types.STRING(), Types.STRING(), Types.STRING(), Types.STRING()
     ]),
     driver_class_name='org.postgresql.Driver',
-    jdbc_url='jdbc:postgresql://postgres_ecommerce:5432/postgres',
+    jdbc_url='jdbc:postgresql://postgres_ecommerce:5432/ecommerce',
     username='postgres',
     password='postgres'
 )
 
-# Attach sink to stream
 stream.add_sink(sink)
 
-# Execute the Flink job
 env.execute("Kafka to Postgres Transaction Pipeline")

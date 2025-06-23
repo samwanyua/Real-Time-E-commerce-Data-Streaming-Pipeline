@@ -55,6 +55,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
@@ -81,7 +82,9 @@ services:
       - 5601:5601
 
   jobmanager:
-    image: flink:1.17.1-scala_2.12
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: flink-jobmanager
     command: jobmanager
     ports:
@@ -90,10 +93,13 @@ services:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
     volumes:
       - ./jars:/opt/flink/jars
+      - ./flink_job.py:/opt/flink/flink_job.py
 
 
   taskmanager:
-    image: flink:1.17.1-scala_2.12
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: flink-taskmanager
     command: taskmanager
     depends_on:
