@@ -99,7 +99,9 @@ services:
     entrypoint: /opt/flink/bin/jobmanager.sh start-foreground
 
   flink-submit:
-    image: flink:1.17
+    build:
+      context: .
+      dockerfile: Dockerfile.submit
     depends_on:
       - jobmanager
     volumes:
