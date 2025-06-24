@@ -63,7 +63,7 @@ def write_to_pg_and_es(df, epoch_id):
             .format("org.elasticsearch.spark.sql") \
             .option("es.nodes", "es-container") \
             .option("es.port", "9200") \
-            .option("es.nodes.wan.only", "true") \
+            .option("es.nodes.wan.only", "false") \
             .mode("append") \
             .save("transactions-index")
 
