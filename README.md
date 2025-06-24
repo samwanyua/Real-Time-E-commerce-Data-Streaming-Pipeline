@@ -1,71 +1,76 @@
-## Real-Time E-commerce Data Streaming Pipeline
+## Real-Time E-commerce Data Streaming Pipeline (Kafka + Spark + ELK + PostgreSQL)
 
-This project demonstrates a real-time data engineering pipeline for an e-commerce platform using some of the industry's most powerful technologies:
+This project demonstrates a **real-time streaming data pipeline** for an e-commerce platform using:
 
-- **Apache Kafka + Zookeeper** for real-time event streaming
-- **Apache Flink** for stream processing and aggregation
-- **PostgreSQL** for storing raw and enriched transactional data
-- **Elasticsearch** for fast, flexible search and analytics
-- **Kibana** for visualizing real-time insights
-- **Docker Compose** to containerize the entire stack
+- **Apache Kafka** for event ingestion  
+- **Apache Spark Structured Streaming** for real-time processing  
+- **PostgreSQL** for storing transactional data  
+- **Elasticsearch** for search & analytics  
+- **Kibana** for real-time dashboards  
+- **Docker Compose** to run the entire stack locally
 
 ---
 
-## Use Case
+##  Use Case
 
-Simulated user behavior on an e-commerce site, such as:
+Simulated user activity from an e-commerce app, including:
 
-- Viewing products
-- Adding items to a cart
-- Completing purchases
+- Product views  
+- Cart additions  
+- Purchase events  
 
-These actions generate events, which are streamed through Kafka, processed by Flink, stored in PostgreSQL, indexed in Elasticsearch, and visualized in Kibana.
+These actions generate events streamed through Kafka, processed by Spark, stored in PostgreSQL, indexed in Elasticsearch, and visualized using Kibana.
 
 ---
 
 ##  Architecture
 
 ```text
-+-------------+        +--------+       +--------+       +-------------+
-|  Event Gen  +------> | Kafka  +-----> | Flink  +-----> | PostgreSQL  |
-|  (Producer) |        +--------+       +--------+       +-------------+
-       |                                     |
-       |                                     v
-       |                              +--------------+
-       |                              | Elasticsearch |
-       |                              +--------------+
-       |                                     |
-       v                                     v
-+--------------+                      +--------------+
-| Zookeeper    |                      |   Kibana     |
-+--------------+                      +--------------+
++-------------+        +--------+        +--------+        +-------------+
+|  Producer   +------> | Kafka  +------> | Spark  +------> | PostgreSQL  |
+| (Python App)|        +--------+        +--------+        +-------------+
+       |                                      |
+       |                                      v
+       |                               +--------------+
+       |                               | Elasticsearch |
+       |                               +--------------+
+       |                                      |
+       v                                      v
++--------------+                       +--------------+
+|  Zookeeper   |                       |    Kibana    |
++--------------+                       +--------------+
 ```
 
-## 🛠 Tech Stack
+##  Stack Breakdown +  Getting Started
 
-| Layer         | Technology        | Purpose                           |
-|---------------|-------------------|-----------------------------------|
-| Ingestion     | Apache Kafka      | Stream event ingestion            |
-| Coordination  | Apache Zookeeper  | Manage Kafka cluster metadata     |
-| Processing    | Apache Flink      | Real-time transformation & ETL    |
-| Storage       | PostgreSQL        | Store raw/enriched data           |
-| Analytics     | Elasticsearch     | Indexing & search                 |
-| Dashboarding  | Kibana            | Visual insights                   |
-| Orchestration | Docker Compose    | Containerized local environment   |
+###  Stack Breakdown
 
+| Layer         | Tool                   | Description                            |
+|---------------|------------------------|----------------------------------------|
+| Ingestion     | **Kafka**              | Real-time event streaming              |
+| Coordination  | **Zookeeper**          | Kafka broker metadata manager          |
+| Processing    | **Spark Structured Streaming** | Real-time transformation & aggregation |
+| Storage       | **PostgreSQL**         | Stores raw and processed data          |
+| Indexing      | **Elasticsearch**      | Fast search and analytics              |
+| Dashboarding  | **Kibana**             | Data exploration & visualization       |
+| Orchestration | **Docker Compose**     | Local container orchestration          |
 
-## Getting Started
-1. Clone the Repository
-```
-git clone https://github.com/samwanyua/Real-Time E-commerce Data Streaming Pipeline.git
-cd Real-Time E-commerce Data Streaming Pipeline
+---
+
+###  Getting Started
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/samwanyua/real-time-ecommerce-streaming-pipeline.git
+cd real-time-ecommerce-streaming-pipeline
 ```
 
 2. Start All Services
 ```
 docker-compose up -d
 ```
-This will spin up: Kafka + Zookeeper, Flink (JobManager & TaskManager), PostgreSQL, Elasticsearch,Kibana
+This will spin up: Kafka + Zookeeper, PostgreSQL, Elasticsearch,Kibana
 
 3. Generate Events
 Simulate e-commerce events with the Python Kafka producer:
@@ -85,16 +90,13 @@ Each event looks like:
 }
 ```
 
-4. Deploy the Flink Job
-Run the Flink processing job that:
-
-Aggregates purchase amounts per product
-
-Sends results to Elasticsearch and PostgreSQL
-
+4.  Run the Spark Streaming Job
 ```
-docker exec -it flink-jobmanager ./bin/pyflink.sh flink-job/process_orders.py
-```
+docker exec -it spark-master /spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 \
+  /app/spark_job.py```
+
 5. Explore the Data
 ```
 docker exec -it postgres psql -U ecommerce -d ecommerce

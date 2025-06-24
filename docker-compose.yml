@@ -36,6 +36,8 @@ services:
       KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_MESSAGE_MAX_BYTES: 200000000
+      KAFKA_REPLICA_FETCH_MAX_BYTES: 200000000
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
     healthcheck:
@@ -99,9 +101,7 @@ services:
     entrypoint: /opt/flink/bin/jobmanager.sh start-foreground
 
   flink-submit:
-    build:
-      context: .
-      dockerfile: Dockerfile.submit
+    image: flink:1.17
     depends_on:
       - jobmanager
     volumes:
@@ -112,15 +112,7 @@ services:
         echo 'Waiting for Flink JobManager to be ready...';
         while ! nc -z jobmanager 6123; do sleep 2; done;
         echo 'Submitting Flink job...';
-        flink run -py /opt/flink/flink_job.py \
-          --pythonFiles /opt/flink/flink_job.py \
-          --jarfile /opt/flink/jars/flink-connector-kafka-1.17.1.jar \
-          --jarfile /opt/flink/jars/flink-connector-jdbc-1.17.1.jar \
-          --jarfile /opt/flink/jars/postgresql-42.7.3.jar;
-      "
-
-
-
+        flink run -py /opt/flink/flink_job.py --pythonFiles /opt/flink/flink_job.py --jarfile /opt/flink/jars/flink-connector-kafka-1.17.1.jar --jarfile /opt/flink/jars/flink-connector-jdbc-1.17.1.jar --jarfile /opt/flink/jars/postgresql-42.7.3.jar      "
 
   taskmanager:
     build:
@@ -153,3 +145,8 @@ services:
 
 volumes:
   pg_data:
+
+networks:
+  default:
+    name: flink-net
+
