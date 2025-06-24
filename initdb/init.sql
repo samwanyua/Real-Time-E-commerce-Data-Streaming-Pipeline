@@ -1,9 +1,19 @@
--- initdb/init.sql
+-- Create the 'ecommerce' database only if it doesn't exist
+DO
+$$
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_database WHERE datname = 'ecommerce'
+   ) THEN
+      CREATE DATABASE ecommerce;
+   END IF;
+END
+$$;
 
-CREATE DATABASE ecommerce;
+-- Connect to the ecommerce database
+\connect ecommerce
 
-\c ecommerce
-
+-- Create the 'transactions' table if it doesn't exist
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id     TEXT PRIMARY KEY,
     process_id         TEXT,

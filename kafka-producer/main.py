@@ -1,5 +1,5 @@
 from faker import Faker 
-from confluent_kafka import Producer  # <-- Use basic Producer
+from confluent_kafka import Producer
 import random 
 from datetime import datetime  
 import time
@@ -9,7 +9,6 @@ fake = Faker()
 
 def generate_sales_transactions():
     user = fake.simple_profile()
-
     return {
         "transaction_id": fake.uuid4(),
         "process_id": random.choice(['product1', 'product2', 'product3', 'product4', 'product5', 'product6']),
@@ -32,19 +31,12 @@ def delivery_report(err, msg):
 
 def main():
     topic = 'financial_transactions'
+    producer = Producer({'bootstrap.servers': 'broker:29092'})
 
-    # ✅ Basic Producer without serializers
-    producer = Producer({
-        'bootstrap.servers': 'broker:29092'
-    })
-
-    start_time = datetime.now()
-
-    while (datetime.now() - start_time).total_seconds() < 240:
+    while True:
         try:
             transaction = generate_sales_transactions()
             transaction['total_amount'] = transaction['product_price'] * transaction['product_quantity']
-
             print(f"Producing: {transaction}")
 
             producer.produce(
@@ -60,7 +52,7 @@ def main():
             print("⛔ Buffer full! Retrying...")
             time.sleep(2)
         except Exception as e:
-            print("🔥 Error: ", e)
+            print("Error: ", e)
 
     producer.flush()
 
