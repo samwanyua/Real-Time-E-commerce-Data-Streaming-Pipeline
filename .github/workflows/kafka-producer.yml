@@ -58,4 +58,4 @@ jobs:
         run: sleep 20
 
       - name: Run Kafka Producer Script
-        run: python main.py
+        run: python kafka-producer/main.py
