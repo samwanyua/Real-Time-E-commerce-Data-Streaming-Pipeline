@@ -1,12 +1,10 @@
-# Dockerfile.producer
 FROM python:3.10-slim
 
-# Install dependencies
-RUN pip install --no-cache-dir faker confluent_kafka
-
-# Set working directory
 WORKDIR /app
 
-# Copy main.py script into the container
-COPY main.py .
+COPY kafka-producer/requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+COPY kafka-producer/ .
+
+CMD ["python", "main.py"]

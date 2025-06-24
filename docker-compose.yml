@@ -1,4 +1,5 @@
-# version: '3.8'
+version: '3.8'
+
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -83,52 +84,26 @@ services:
     ports:
       - 5601:5601
 
-  jobmanager:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: flink-jobmanager
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
     ports:
-      - "8081:8081"  # Flink Web UI
-      - "6123:6123"  # RPC port
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ./spark_job.py:/app/spark_job.py
+      - ./jars:/opt/bitnami/spark/jars
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    container_name: spark-worker
     environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
-      - "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager"
-      - "taskmanager.numberOfTaskSlots=2"
-    volumes:
-      - ./jars:/opt/flink/jars
-      - ./flink_job.py:/opt/flink/flink_job.py
-    entrypoint: /opt/flink/bin/jobmanager.sh start-foreground
-
-  flink-submit:
-    image: flink:1.17
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
     depends_on:
-      - jobmanager
-    volumes:
-      - ./jars:/opt/flink/jars
-      - ./flink_job.py:/opt/flink/flink_job.py
-    entrypoint: >
-      /bin/bash -c "
-        echo 'Waiting for Flink JobManager to be ready...';
-        while ! nc -z jobmanager 6123; do sleep 2; done;
-        echo 'Submitting Flink job...';
-        flink run -py /opt/flink/flink_job.py --pythonFiles /opt/flink/flink_job.py --jarfile /opt/flink/jars/flink-connector-kafka-1.17.1.jar --jarfile /opt/flink/jars/flink-connector-jdbc-1.17.1.jar --jarfile /opt/flink/jars/postgresql-42.7.3.jar      "
-
-  taskmanager:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: flink-taskmanager
-    command: taskmanager
-    depends_on:
-      - jobmanager
-    environment:
-      - JOB_MANAGER_RPC_ADDRESS=jobmanager
-      - "FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager"
-      - "taskmanager.numberOfTaskSlots=2"
-
-    volumes:
-      - ./jars:/opt/flink/jars
+      - spark-master
 
   producer:
     build:
@@ -142,11 +117,9 @@ services:
       - PYTHONUNBUFFERED=1
     command: python3 /app/main.py
 
-
 volumes:
   pg_data:
 
 networks:
   default:
-    name: flink-net
-
+    name: spark-net
