@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, expr
 from pyspark.sql.types import StructType, StringType, FloatType, IntegerType
 
-# Define schema based on the init.sql table
+# Define schema 
 schema = StructType() \
     .add("transaction_id", StringType()) \
     .add("process_id", StringType()) \
@@ -43,8 +43,8 @@ def write_to_postgres(batch_df, _):
         .format("jdbc") \
         .option("url", "jdbc:postgresql://postgres:5432/ecommerce") \
         .option("dbtable", "transactions") \
-        .option("user", "ecommerce") \
-        .option("password", "ecommerce") \
+        .option("user", "postgres") \
+        .option("password", "postgres") \
         .option("driver", "org.postgresql.Driver") \
         .mode("append") \
         .save()

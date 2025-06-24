@@ -3,3 +3,4 @@ confluent_kafka
 simplejson
 apache-flink
 psycopg2-binary
+pyspark==3.5.1
