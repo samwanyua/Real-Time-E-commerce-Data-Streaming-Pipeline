@@ -120,6 +120,6 @@ services:
 volumes:
   pg_data:
 
-networks:
-  default:
-    name: spark-net
+# networks:
+#   default:
+#     name: spark-net
