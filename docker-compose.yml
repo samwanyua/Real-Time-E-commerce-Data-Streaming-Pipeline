@@ -89,12 +89,13 @@ services:
     container_name: spark-master
     environment:
       - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
     ports:
       - "7077:7077"
       - "8080:8080"
-    volumes:
-      - ./spark_job.py:/app/spark_job.py
-      - ./jars:/opt/bitnami/spark/jars
 
   spark-worker:
     image: bitnami/spark:3.5
@@ -104,6 +105,25 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
     depends_on:
       - spark-master
+
+  spark-submit:
+    image: bitnami/spark:3.5
+    container_name: spark-submit
+    depends_on:
+      - broker
+      - postgres
+    volumes:
+      - .:/opt/spark-app
+    command: >
+      /opt/bitnami/spark/bin/spark-submit
+        --master spark://spark-master:7077
+        --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
+        --jars /opt/spark-app/jars/postgresql-42.7.3.jar
+        /opt/spark-app/spark_job.py
+
+
+
+
 
   producer:
     build:
