@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   zookeeper:
@@ -58,9 +58,9 @@ services:
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecommerce
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
@@ -75,14 +75,19 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
     container_name: es-container
-    networks:
-      - ecommerce-net
     environment:
       - xpack.security.enabled=false
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx1g
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
     ports:
       - 9200:9200
+    networks:
+      - ecommerce-net
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
 
   kibana:
     container_name: kb-container
