@@ -37,6 +37,7 @@ parsed_df = raw_df.selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), schema).alias("data")) \
     .select("data.*")
 
+# Write batch function
 def write_to_pg_and_es(df, epoch_id):
     try:
         if df.rdd.isEmpty():
@@ -46,10 +47,10 @@ def write_to_pg_and_es(df, epoch_id):
         print(f"✅ Epoch {epoch_id}: Writing {df.count()} records")
         df.printSchema()
 
-        # ✅ Write to local PostgreSQL
+        # Write to PostgreSQL
         df.write \
             .format("jdbc") \
-            .option("url", "jdbc:postgresql://host.docker.internal:5432/ecommerce") \
+            .option("url", "jdbc:postgresql://postgres:5432/ecommerce") \
             .option("driver", "org.postgresql.Driver") \
             .option("dbtable", "transactions") \
             .option("user", "postgres") \
@@ -57,7 +58,7 @@ def write_to_pg_and_es(df, epoch_id):
             .mode("append") \
             .save()
 
-        # ✅ Write to Elasticsearch 
+        # Write to Elasticsearch
         df.write \
             .format("org.elasticsearch.spark.sql") \
             .option("es.nodes", "es-container") \
@@ -68,7 +69,6 @@ def write_to_pg_and_es(df, epoch_id):
 
     except Exception as e:
         print(f"🔥 Error in foreachBatch: {e}")
-
 
 # Start stream
 query = parsed_df.writeStream \
